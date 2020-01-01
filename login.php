@@ -9,6 +9,7 @@ $password = isset( $_REQUEST['password'] ) ? $_REQUEST['password'] : '';
 
 $dbh = $pdo->getDBH();
 
+
 $data = array(
   ':email'    => $username,
   ':password' => $password
