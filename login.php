@@ -2,6 +2,12 @@
 
 include('./pdo.php');
 
+class Login {
+    public function __construct() {
+
+    }
+}
+
 $pdo = new Custom_PDO();
 
 $username = isset( $_REQUEST['username'] ) ? $_REQUEST['username'] : '';
