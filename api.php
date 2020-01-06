@@ -28,7 +28,7 @@ class API implements Request {
           $servers = new Servers($this->mPDO, $_REQUEST);
           break;
         case 'join':
-          $join = new Join($this->mPDO, $_REQUEST, $wpapikey);
+          $join = new Join($this->mPDO, $_REQUEST);
           break;
         case 'leave':
           $leave = new Leave($this->mPDO, $_REQUEST);

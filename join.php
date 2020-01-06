@@ -3,19 +3,16 @@
 class Join implements Request {
   private $pdo;
 
-  private $wpapikey;
-
   private $user_id;
   private $url;
   private $token;
 
-  public function __construct($pdo, $data, $wpapikey) {
+  public function __construct($pdo, $data) {
     $this->pdo = $pdo;
-    $this->wpapikey = $wpapikey;
 
     $this->user_id = isset( $_REQUEST['user_id'] ) ? $_REQUEST['user_id'] : 0;
     $this->url = isset( $_REQUEST['url'] ) ? $_REQUEST['url'] : 0;
-    $this->token = isset( $_REQUEST['token'] ) ? $_REQUEST['token'] : 0;
+    $this->token = isset( $_REQUEST['token'] ) ? $_REQUEST['token'] : '';
 
     $this->doRequest();
   }
@@ -45,7 +42,7 @@ class Join implements Request {
     $curl = curl_init();
 
     curl_setopt($curl, CURLOPT_URL, $url_info);
-    curl_setopt($curl, CURLOPT_HTTPHEADER, array( 'wpapikey: ' . $this->wpapikey ) );
+    curl_setopt($curl, CURLOPT_HTTPHEADER, array( 'wpapikey: ' . $this->token ) );
     curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($curl, CURLOPT_HEADER, false);
 
