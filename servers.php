@@ -29,7 +29,7 @@ class Servers implements Request {
 
     $data = array();
 
-    $result = $stmt->fetchAll();
+    $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     if (count($result) == 0) {
       $result = null;
