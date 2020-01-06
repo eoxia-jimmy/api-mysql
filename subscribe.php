@@ -1,26 +1,61 @@
 <?php
 
-include('./pdo.php');
+class Subscribe implements Request {
+  private $pdo;
 
-$pdo = new Custom_PDO();
+  private $email;
+  private $username;
+  private $password;
 
-$email = isset( $_REQUEST['email'] ) ? $_REQUEST['email'] : 0;
-$username = isset( $_REQUEST['username'] ) ? $_REQUEST['username'] : 0;
-$password = isset( $_REQUEST['password'] ) ? $_REQUEST['password'] : 0;
+  public function __construct($pdo, $data) {
+    $this->pdo = $pdo;
 
-$dbh = $pdo->getDBH();
+    $this->email = isset($data['email']) ? filter_var($data['email'], FILTER_SANITIZE_STRING) : null;
+    $this->username = isset($data['username']) ? filter_var($data['username'], FILTER_SANITIZE_STRING) : null;
+    $this->password = isset($data['password']) ? filter_var($data['password'], FILTER_SANITIZE_STRING) : null;
 
+    if (!filter_var($this->email, FILTER_VALIDATE_EMAIL)) {
+      $this->response(false, SUBSCRIBE_ERRORS[1]);
+    }
 
-$data = array(
-  ':email'    => $email,
-  ':username' => $username,
-  ':password' => $password,
-);
+    $this->doRequest();
+  }
 
-$stmt = $dbh->prepare('INSERT INTO users (username, email, password) VALUES(:username, :email, :password)');
-$stmt->execute($data);
+  private function doRequest() {
+    $data = array(
+      ':email'    => $this->email,
+      ':username' => $this->username,
+      ':password' => $this->password,
+    );
 
-$data = array();
+    if (empty($data[':email']) || empty($data[':username']) || empty($data[':password'])) {
+      $this->response(false, SUBSCRIBE_ERRORS[0]);
+    }
 
-echo json_encode($dbh->lastInsertId());
-exit;
+    $dbh = $this->pdo->getDBH();
+    $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+    $stmt = $dbh->prepare('INSERT INTO users (username, email, password) VALUES(:username, :email, :password)');
+
+    try {
+      $stmt = $stmt->execute($data);
+    } catch (PDOException $e) {
+      $this->response(false, (int) $e->getCode());
+    }
+
+    if (!$stmt) {
+      $this->response(false, null, $dbh->errorInfo());
+    }
+
+    $this->response(true, null, $dbh->lastInsertId());
+  }
+
+  public function response($status, $error, $data = null) {
+    echo json_encode(array(
+      'status' => $status,
+      'error' => $error,
+      'data' => $data,
+    ));
+    exit;
+  }
+}

@@ -1,7 +1,5 @@
 <?php
 
-include('./conf.php');
-
 class Custom_PDO {
   private $dbh;
 

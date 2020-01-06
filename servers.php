@@ -1,24 +1,49 @@
 <?php
 
-include('./pdo.php');
+class Servers implements Request {
+  private $pdo;
 
-$pdo = new Custom_PDO();
+  private $user_id;
 
-$user_id = isset( $_REQUEST['user_id'] ) ? $_REQUEST['user_id'] : 0;
+  public function __construct($pdo, $data) {
+    $this->pdo = $pdo;
 
-$dbh = $pdo->getDBH();
+    $this->user_id = isset( $_REQUEST['user_id'] ) ? (int) $_REQUEST['user_id'] : 0;
 
+    $this->doRequest();
+  }
 
-$data = array(
-  ':user_id'    => $user_id,
-);
+  private function doRequest() {
+    $data = array(
+      ':user_id' => $this->user_id,
+    );
 
-$stmt = $dbh->prepare('SELECT * FROM servers WHERE user_id=:user_id', array(PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY));
-$stmt->execute($data);
+    if (empty($data[':user_id'])) {
+      $this->response(false, SERVERS_ERRORS[0]);
+    }
 
-$data = array();
+    $dbh = $this->pdo->getDBH();
 
-$result = $stmt->fetchAll();
+    $stmt = $dbh->prepare('SELECT * FROM servers WHERE user_id=:user_id', array(PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY));
+    $stmt->execute($data);
 
-echo json_encode($result);
-exit;
+    $data = array();
+
+    $result = $stmt->fetchAll();
+
+    if (count($result) == 0) {
+      $result = null;
+    }
+
+    $this->response(true, null, $result);
+  }
+
+  public function response($status, $error, $data = null) {
+    echo json_encode(array(
+      'status' => $status,
+      'error' => $error,
+      'data' => $data,
+    ));
+    exit;
+  }
+}

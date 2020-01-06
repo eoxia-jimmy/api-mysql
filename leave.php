@@ -1,26 +1,41 @@
 <?php
 
-include('./pdo.php');
+class Leave implements Request {
+  private $pdo;
 
-$pdo = new Custom_PDO();
+  private $id;
 
-$id = isset( $_REQUEST['id'] ) ? $_REQUEST['id'] : 0;
+  public function __construct($pdo, $data) {
+    $this->pdo = $pdo;
 
-$dbh = $pdo->getDBH();
+    $this->id = isset($data['id']) ? filter_var($data['id'], FILTER_SANITIZE_STRING) : null;
 
+    $this->doRequest();
+  }
 
-$data = array(
-  ':id'    => $id,
-);
+  private function doRequest() {
+    $data = array(
+      ':id' => $this->id,
+    );
 
-$stmt = $dbh->prepare('DELETE FROM servers WHERE id=:id');
-$stmt->execute($data);
+    if (empty($this->id)) {
+      $this->response(false, LEAVE_ERRORS[0]);
+    }
 
-$data = array();
+    $dbh = $this->pdo->getDBH();
 
-$result = array(
-  'status' => true,
-);
+    $stmt = $dbh->prepare('DELETE FROM servers WHERE id=:id');
+    $stmt->execute($data);
 
-echo json_encode($result);
-exit;
+    $this->response(true, null, null);
+  }
+
+  public function response($status, $error, $data = null) {
+    echo json_encode(array(
+      'status' => $status,
+      'error' => $error,
+      'data' => $data,
+    ));
+    exit;
+  }
+}
